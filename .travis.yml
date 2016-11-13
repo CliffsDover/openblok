@@ -6,50 +6,47 @@ dist: trusty
 branches:
   only:
     - master
+    - coverity_scan
+
+env:
+  global:
+    - secure: "e3nBcV8CAo7HRefQ/j20FnLplAgZ1iFqbykZZIYHJERsHZqJl36Oc36kALIsvS8vWrygASotoEEX2jiz7dUo2PQ5q9DQ9aEGpB7fVOPkhHGuLcKmp82/Vv+urZqrnw0DCSZ6RFV3OaYOjKMEgMFZ9tD0I5LOHP+0vV+xTbFgr6j5yCROgEND1h0Ul6myDOzPoJmc5lwUs8aDuwwpfHq7UiXk7SB00Y2kjp9xYNwbN5hvY2kyAtC2xTKUQoCRyjw6WOdBVnowg6JWrTLaopIJbroQbhMrxakghxGsAQLcB0MRrbDw5m50lINJfhad8oGFqqcEuLCLNzIiBFp30EeCgmnRJUUN6TNf3FWoAlO9gGsi5tEYP/fY6TWtq3pbGsbgc/1qCorzETnwwTEAsmS6PSZxIIdfmd70YdHDudu6u7E/+lXhhjJ1tkfqXLgzMVd3yB3l2OTaxs1dGgVYwYnJj7jS3VQklvuupkIUMPTl8tR4dQ6KjDhmYbKDCIZR11p5jC54k6733y+RTc0uYfDl6U1F2Ej/hDjG05tuXoEI0DIN1AsVphQ4QDgeW5wVnuNdyx//7+Uq4t2ZdAqKFiCfqrFBwnKAlrt2w7ZEDYaZUtgeHl/bI9a3TD2uIjbF015SOl2uZ5rVI1Cy9Rm2sDwzJp4m7ahtyAYAvmkKG8o4FcI="
 
 
-matrix:
-  include:
-  - compiler: gcc
-    env: BUILD=native
-    before_install:
-    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - sudo apt-get -qq update
-    - sudo apt-get install -y
-        g++-4.9
-        libsdl2-dev
-        libsdl2-image-dev
-        libsdl2-mixer-dev
-        libsdl2-ttf-dev
-    - export CC=gcc-4.9
-    - export CXX=g++-4.9
-  - os: osx
-    compiler: clang
-    env: BUILD=native
-    before_install:
-    - brew update
-    - brew install
-        sdl2
-        sdl2_image
-        sdl2_mixer
-        sdl2_ttf
+before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get -qq update
+  - sudo apt-get install -y
+      g++-4.9
+      libsdl2-dev
+      libsdl2-image-dev
+      libsdl2-mixer-dev
+      libsdl2-ttf-dev
+  - export CC=gcc-4.9
+  - export CXX=g++-4.9
+  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 
 before_script:
-  - if [[ "$BUILD" == "native" ]]; then
-      $CXX --version;
-      cmake --version;
-      sdl2-config --version;
-    fi
+  - $CXX --version
+  - cmake --version
+  - sdl2-config --version
+  - mkdir build && cd build
 
 
 script:
-  - if [[ "$BUILD" == "native" ]]; then
-      mkdir build;
-      cd build;
-      cmake .. -DCMAKE_BUILD_TYPE=Debug;
-      make VERBOSE=1;
-    fi
-  - if [[ "$BUILD" == "native" ]]; then
-      ./tests/openblok_test;
-    fi
+  - cmake .. -DCMAKE_BUILD_TYPE=Debug
+  - make
+
+
+addons:
+  coverity_scan:
+    project:
+      name: "mmatyas/openblok"
+      description: "Build submitted via Travis CI"
+    notification_email: mmatyas@inf.u-szeged.hu
+    build_command_prepend:
+      cov-configure --comptype gcc --compiler gcc-4.9 &&
+      cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=OFF
+    build_command: "make"
+    branch_pattern: coverity_scan
