@@ -23,8 +23,8 @@ before_install:
       libsdl2-image-dev
       libsdl2-mixer-dev
       libsdl2-ttf-dev
-  - export CC=gcc-4.9
-  - export CXX=g++-4.9
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 90
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 
@@ -51,11 +51,9 @@ script:
 addons:
   coverity_scan:
     project:
-      name: "mmatyas/openblok"
-      description: "Build submitted via Travis CI"
+      name: mmatyas/openblok
+      description: Build submitted via Travis CI
     notification_email: mmatyas@inf.u-szeged.hu
-    build_command_prepend:
-      cov-configure --comptype gcc --compiler gcc-4.9 &&
-      cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=OFF
-    build_command: "make"
+    build_command_prepend: cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=OFF
+    build_command: make
     branch_pattern: coverity_scan
