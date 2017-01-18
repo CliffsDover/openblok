@@ -11,6 +11,7 @@ branches:
 env:
   global:
     - secure: "e3nBcV8CAo7HRefQ/j20FnLplAgZ1iFqbykZZIYHJERsHZqJl36Oc36kALIsvS8vWrygASotoEEX2jiz7dUo2PQ5q9DQ9aEGpB7fVOPkhHGuLcKmp82/Vv+urZqrnw0DCSZ6RFV3OaYOjKMEgMFZ9tD0I5LOHP+0vV+xTbFgr6j5yCROgEND1h0Ul6myDOzPoJmc5lwUs8aDuwwpfHq7UiXk7SB00Y2kjp9xYNwbN5hvY2kyAtC2xTKUQoCRyjw6WOdBVnowg6JWrTLaopIJbroQbhMrxakghxGsAQLcB0MRrbDw5m50lINJfhad8oGFqqcEuLCLNzIiBFp30EeCgmnRJUUN6TNf3FWoAlO9gGsi5tEYP/fY6TWtq3pbGsbgc/1qCorzETnwwTEAsmS6PSZxIIdfmd70YdHDudu6u7E/+lXhhjJ1tkfqXLgzMVd3yB3l2OTaxs1dGgVYwYnJj7jS3VQklvuupkIUMPTl8tR4dQ6KjDhmYbKDCIZR11p5jC54k6733y+RTc0uYfDl6U1F2Ej/hDjG05tuXoEI0DIN1AsVphQ4QDgeW5wVnuNdyx//7+Uq4t2ZdAqKFiCfqrFBwnKAlrt2w7ZEDYaZUtgeHl/bI9a3TD2uIjbF015SOl2uZ5rVI1Cy9Rm2sDwzJp4m7ahtyAYAvmkKG8o4FcI="
+    - BUILD=native
 
 
 before_install:
@@ -28,15 +29,23 @@ before_install:
 
 
 before_script:
-  - $CXX --version
-  - cmake --version
-  - sdl2-config --version
-  - mkdir build && cd build
+  - if [[ "$BUILD" == "native" ]]; then
+      $CXX --version;
+      cmake --version;
+      sdl2-config --version;
+    fi
 
 
 script:
-  - cmake .. -DCMAKE_BUILD_TYPE=Debug
-  - make
+  - if [[ "$BUILD" == "native" ]]; then
+      mkdir build;
+      cd build;
+      cmake .. -DCMAKE_BUILD_TYPE=Debug;
+      make VERBOSE=1;
+    fi
+  - if [[ "$BUILD" == "native" ]]; then
+      ./tests/openblok_test;
+    fi
 
 
 addons:
