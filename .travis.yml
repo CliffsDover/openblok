@@ -6,6 +6,7 @@ dist: trusty
 branches:
   only:
     - master
+    - trigger_appimage
 
 
 matrix:
@@ -23,16 +24,8 @@ matrix:
         libsdl2-ttf-dev
     - export CC=gcc-4.9
     - export CXX=g++-4.9
-  - os: osx
-    compiler: clang
-    env: BUILD=native
-    before_install:
-    - brew update
-    - brew install
-        sdl2
-        sdl2_image
-        sdl2_mixer
-        sdl2_ttf
+    - wget https://github.com/mmatyas/mmatyas.github.io/releases/download/arm-libs/appstream-085-ubuntu1404.tgz
+    - sudo tar xzf appstream-085-ubuntu1404.tgz -C /
 
 
 before_script:
@@ -47,9 +40,7 @@ script:
   - if [[ "$BUILD" == "native" ]]; then
       mkdir build;
       cd build;
-      cmake .. -DCMAKE_BUILD_TYPE=Debug;
+      cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_MP3=OFF;
       make VERBOSE=1;
     fi
-  - if [[ "$BUILD" == "native" ]]; then
-      ./tests/openblok_test;
-    fi
+  - bash -e ../etc/appimage/travis.sh
